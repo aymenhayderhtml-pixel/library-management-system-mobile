@@ -4,8 +4,9 @@ const borrowSchema = new mongoose.Schema({
   studentName: { type: String, required: true },
   bookTitle: { type: String, required: true },
   bookId: { type: String, required: true },
-  userId: { type: String, required: true },   // track which user borrowed
-  borrowDate: { type: Date, default: Date.now }
+  userId: { type: String, required: true },
+  borrowDate: { type: Date, default: Date.now },
+  dueDate: { type: Date, required: true }  // 14 days from borrow
 });
 
 module.exports = mongoose.model('Borrow', borrowSchema);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { API_URL } from '../config';
 
 export default function UserListScreen({ navigation }) {
@@ -80,16 +80,27 @@ export default function UserListScreen({ navigation }) {
         <Text style={styles.addBtnText}>➕ Add New User</Text>
       </TouchableOpacity>
 
-      {loading ? (
-        <Text style={styles.center}>Loading users...</Text>
-      ) : users.length === 0 ? (
-        <Text style={styles.center}>No users found</Text>
-      ) : (
+      {loading && (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#3498db" />
+          <Text style={styles.loadingText}>Loading users...</Text>
+        </View>
+      )}
+
+      {!loading && users.length === 0 && (
+        <View style={styles.center}>
+          <Text style={styles.emptyEmoji}>👤</Text>
+          <Text style={styles.emptyText}>No users found. Create one above.</Text>
+        </View>
+      )}
+
+      {!loading && users.length > 0 && (
         <FlatList
           data={users}
           keyExtractor={(item) => item._id}
           renderItem={renderUser}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -100,7 +111,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f2f5', padding: 15 },
   addBtn: { backgroundColor: '#27ae60', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15 },
   addBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  center: { textAlign: 'center', marginTop: 50, fontSize: 16, color: '#7f8c8d' },
+  center: { alignItems: 'center', marginTop: 60 },
+  loadingText: { marginTop: 10, color: '#7f8c8d', fontSize: 15 },
+  emptyEmoji: { fontSize: 48, marginBottom: 10 },
+  emptyText: { fontSize: 16, color: '#7f8c8d', textAlign: 'center' },
   list: { paddingBottom: 20 },
   item: { backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, elevation: 2 },
   info: { marginBottom: 10 },

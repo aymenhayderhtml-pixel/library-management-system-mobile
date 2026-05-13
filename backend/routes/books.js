@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Book = require('../models/Book');
+const Borrow = require('../models/Borrow');
 
 // GET all books
 router.get('/', async (req, res) => {
@@ -62,6 +63,10 @@ router.put('/:id', async (req, res) => {
 // DELETE book
 router.delete('/:id', async (req, res) => {
   try {
+    // Check if book has active borrows
+    const activeBorrows = await Borrow.findOne({ bookId: req.params.id });
+    if (activeBorrows) return res.status(400).json({ message: 'Cannot delete book with active borrows' });
+
     const deletedBook = await Book.findByIdAndDelete(req.params.id);
     if (!deletedBook) return res.status(404).json({ message: 'Book not found' });
     res.json({ message: 'Book deleted successfully' });

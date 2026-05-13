@@ -25,20 +25,30 @@ router.get('/', async (req, res) => {
 // POST borrow a book
 router.post('/', async (req, res) => {
   try {
-    const { studentName, bookId, userId } = req.body; // userId is now required
+    const { studentName, bookId, userId } = req.body;
     
     const book = await Book.findById(bookId);
     if (!book) return res.status(404).json({ message: 'Book not found' });
+    
+    // Check for duplicate borrow
+    const existingBorrow = await Borrow.findOne({ bookId, userId });
+    if (existingBorrow) return res.status(400).json({ message: 'You already have this book borrowed' });
+
     if (book.quantity <= 0) return res.status(400).json({ message: 'Book not available' });
     
     book.quantity -= 1;
     await book.save();
+
+    // Calculate due date (14 days from now)
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
     
     const newBorrow = new Borrow({
       studentName,
       bookTitle: book.title,
       bookId,
-      userId // track who borrowed
+      userId,
+      dueDate
     });
     
     const savedBorrow = await newBorrow.save();
@@ -55,10 +65,10 @@ router.delete('/:id', async (req, res) => {
     if (!borrow) return res.status(404).json({ message: 'Borrow record not found' });
     
     const book = await Book.findById(borrow.bookId);
-    if (book) {
-      book.quantity += 1;
-      await book.save();
-    }
+    if (!book) return res.status(404).json({ message: 'Associated book not found' });
+
+    book.quantity += 1;
+    await book.save();
     
     await Borrow.findByIdAndDelete(req.params.id);
     res.json({ message: 'Book returned successfully' });

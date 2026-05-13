@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Borrow = require('../models/Borrow');
 
 // GET all users (without passwords)
 router.get('/', async (req, res) => {
@@ -65,6 +66,10 @@ router.delete('/:id', async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
     if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+    
+    // Clean up borrow records
+    await Borrow.deleteMany({ userId: req.params.id });
+    
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
